@@ -1,0 +1,14 @@
+.metadata
+.DS_Store
+/gen
+/bin
+/.settings
+/.project
+/.classpath
+/out
+/local.properties
+/obj
+/*.ipr
+/*.iws
+/*.iml
+/.idea
