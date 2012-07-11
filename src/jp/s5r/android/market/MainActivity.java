@@ -5,7 +5,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -19,26 +18,27 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URI;
 
 public class MainActivity extends ListActivity {
-    private final static String APK_PATH = "/sdcard/hoge.apk";
+    private final static String APK_PATH = Environment.getExternalStorageDirectory() + "/hoge.apk";
 
     private Handler mHandler = new Handler();
     private ArrayAdapter<ApkInfo> mAdapter;
@@ -93,9 +93,23 @@ public class MainActivity extends ListActivity {
     }
 
     private void setupPreferences() {
+        String defaultUri = null;
+        try {
+            Field f = jp.s5r.android.market.R.string.class.getField("uri");
+            int id = f.getInt(jp.s5r.android.market.R.string.class);
+            defaultUri = getString(id);
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalAccessException e) {
+        }
+
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         try {
-            mUri = URI.create(mPreferences.getString("uri", null));
+            String uriStr = mPreferences.getString("uri", null);
+            if (uriStr == null) {
+                uriStr = defaultUri;
+            }
+            mUri = URI.create(uriStr);
+            mPreferences.edit().putString("uri", mUri.toString()).commit();
         } catch (NullPointerException e) {
             mUri = null;
         } catch (IllegalArgumentException e) {
