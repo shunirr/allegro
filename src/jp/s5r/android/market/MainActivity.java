@@ -240,6 +240,8 @@ public class MainActivity extends ListActivity {
 
         @Override
         protected void onPostExecute(String body) {
+            mAdapter.clear();
+
             try {
                 JSONArray json = new JSONArray();
                 if (body != null) {
