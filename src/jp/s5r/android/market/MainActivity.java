@@ -15,41 +15,98 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.R;
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.*;
+
 import java.io.*;
 import java.net.URI;
 
-public class Main extends ListActivity {
+public class MainActivity extends ListActivity {
     private final static String APK_PATH = "/sdcard/hoge.apk";
     private Handler mHandler = new Handler();
     private ArrayAdapter<ApkInfo> mAdapter;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mAdapter = new ArrayAdapter<ApkInfo>(this, R.layout.simple_list_item_1);
+    private URI mUri;
+    private AlertDialog mJsonUriDialog;
+    private EditText mUriEditText;
 
+    private SharedPreferences mPreferences;
+
+    private void setupDialog() {
+        mUriEditText = new EditText(this);
+        if (mUri != null) {
+            mUriEditText.setText(mUri.toString());
+        }
+
+        mJsonUriDialog = new AlertDialog.Builder(this)
+                .setTitle("Set JSON-List URI")
+                .setView(mUriEditText)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        try {
+                            mUri = URI.create(mUriEditText.getText().toString());
+                            mPreferences.edit().putString("uri", mUri.toString()).commit();
+                            new DownloadListTask().execute(mUri);
+                        } catch (NullPointerException e) {
+                            Toast.makeText(MainActivity.this, "URI is null", Toast.LENGTH_SHORT).show();
+                        } catch (IllegalArgumentException e) {
+                            Toast.makeText(MainActivity.this, "Invalid URI", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                })
+                .create();
+    }
+
+    private void setupListViews() {
+        mAdapter = new ArrayAdapter<ApkInfo>(this, R.layout.simple_list_item_1);
         setListAdapter(mAdapter);
+
         ListView listView = (ListView) findViewById(R.id.list);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ApkInfo info = mAdapter.getItem(position);
-                new DownloadApkTask(Main.this).execute(info.uri);
+                new DownloadApkTask(MainActivity.this).execute(info.uri);
             }
         });
+    }
+
+    private void setupPreferences() {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        try {
+            mUri = URI.create(mPreferences.getString("uri", null));
+        } catch (NullPointerException e) {
+            mUri = null;
+        } catch (IllegalArgumentException e) {
+            mUri = null;
+        }
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setupPreferences();
+        setupListViews();
+        setupDialog();
 
         /*
          * market.json
@@ -59,7 +116,25 @@ public class Main extends ListActivity {
          *   {"title": "MyApp Ver3", "uri": "http://example.com/my-app-v3.apk"}
          * ]
          */
-        new DownloadListTask().execute(URI.create("http://example.com/market.json"));
+
+        if (mUri != null) {
+            new DownloadListTask().execute(mUri);
+        } else {
+            mJsonUriDialog.show();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        boolean ret = super.onCreateOptionsMenu(menu);
+        menu.add(0 , Menu.FIRST , Menu.NONE , "Set URI");
+        return ret;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        mJsonUriDialog.show();
+        return super.onOptionsItemSelected(item);
     }
 
     private DefaultHttpClient createHttpClient() {
@@ -129,7 +204,7 @@ public class Main extends ListActivity {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(Main.this, message, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -185,7 +260,7 @@ public class Main extends ListActivity {
     }
 
     class DownloadApkTask extends AsyncTask<URI, Integer, File> {
-        private static final int BUFFER_SIZE = 10240;
+        private static final int BUFFER_SIZE = 1024;
 
         private ProgressDialog mProgressDialog;
         private Context mContext;
@@ -230,6 +305,7 @@ public class Main extends ListActivity {
                         while ((size = bis.read(buffer)) > 0) {
                             bos.write(buffer, 0, size);
                             publishProgress(size);
+
                             if (isCancelled()) {
                                 break;
                             }
