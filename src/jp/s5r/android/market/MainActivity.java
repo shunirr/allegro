@@ -15,6 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.R;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
@@ -27,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,6 +39,7 @@ import java.net.URI;
 
 public class MainActivity extends ListActivity {
     private final static String APK_PATH = "/sdcard/hoge.apk";
+
     private Handler mHandler = new Handler();
     private ArrayAdapter<ApkInfo> mAdapter;
 
@@ -263,15 +266,15 @@ public class MainActivity extends ListActivity {
         private static final int BUFFER_SIZE = 1024;
 
         private ProgressDialog mProgressDialog;
-        private Context mContext;
+        private Activity mActivity;
 
-        public DownloadApkTask(Context c) {
-            mContext = c;
+        public DownloadApkTask(Activity a) {
+            mActivity = a;
         }
 
         @Override
         protected void onPreExecute() {
-            mProgressDialog = new ProgressDialog(mContext);
+            mProgressDialog = new ProgressDialog(mActivity);
             mProgressDialog.setTitle("Downloading...");
             mProgressDialog.setIndeterminate(true);
             mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -289,6 +292,7 @@ public class MainActivity extends ListActivity {
 
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     mProgressDialog.setMax((int) response.getEntity().getContentLength());
+                    mProgressDialog.setIndeterminate(false);
 
                     file = new File(APK_PATH);
                     if (file.exists()) {
@@ -296,8 +300,7 @@ public class MainActivity extends ListActivity {
                     }
                     file.createNewFile();
 
-                    BufferedHttpEntity entity = new BufferedHttpEntity(response.getEntity());
-                    BufferedInputStream bis = new BufferedInputStream(entity.getContent(), BUFFER_SIZE);
+                    BufferedInputStream bis = new BufferedInputStream(response.getEntity().getContent(), BUFFER_SIZE);
                     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
                     try {
                         byte buffer[] = new byte[BUFFER_SIZE];
@@ -334,7 +337,7 @@ public class MainActivity extends ListActivity {
 
         @Override
         protected void onProgressUpdate(Integer... progress) {
-            mProgressDialog.setProgress(mProgressDialog.getProgress() + progress[0]);
+            mProgressDialog.incrementProgressBy(progress[0]);
         }
 
         @Override
