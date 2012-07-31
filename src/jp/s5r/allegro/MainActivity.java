@@ -2,6 +2,8 @@ package jp.s5r.allegro;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -94,10 +96,20 @@ public class MainActivity extends ListActivity {
 
     private void setupPreferences() {
         String defaultUri = null;
+        String defaultUsername = null;
+        String defaultPassword = null;
         try {
-            Field f = jp.s5r.allegro.R.string.class.getField("uri");
-            int id = f.getInt(jp.s5r.allegro.R.string.class);
-            defaultUri = getString(id);
+            Field fUri = jp.s5r.allegro.R.string.class.getField("uri");
+            int idUri = fUri.getInt(jp.s5r.allegro.R.string.class);
+            defaultUri = getString(idUri);
+
+            Field fUsername = jp.s5r.allegro.R.string.class.getField("username");
+            int idUsername = fUsername.getInt(jp.s5r.allegro.R.string.class);
+            defaultUsername = getString(idUsername);
+
+            Field fPassword = jp.s5r.allegro.R.string.class.getField("password");
+            int idPassword = fPassword.getInt(jp.s5r.allegro.R.string.class);
+            defaultPassword = getString(idPassword);
         } catch (NoSuchFieldException e) {
         } catch (IllegalAccessException e) {
         }
@@ -109,7 +121,20 @@ public class MainActivity extends ListActivity {
                 uriStr = defaultUri;
             }
             mUri = URI.create(uriStr);
+
+            String usernameStr = mPreferences.getString("username", null);
+            if (usernameStr == null) {
+                usernameStr = defaultUsername;
+            }
+
+            String passwordStr = mPreferences.getString("password", null);
+            if (passwordStr == null) {
+                passwordStr = defaultPassword;
+            }
+
             mPreferences.edit().putString("uri", mUri.toString()).commit();
+            mPreferences.edit().putString("username", usernameStr).commit();
+            mPreferences.edit().putString("password", passwordStr).commit();
         } catch (NullPointerException e) {
             mUri = null;
         } catch (IllegalArgumentException e) {
@@ -301,9 +326,20 @@ public class MainActivity extends ListActivity {
         protected File doInBackground(URI... uris) {
             File file = null;
             HttpGet method = new HttpGet(uris[0]);
-            HttpClient client = null;
+            DefaultHttpClient client = null;
+
+            String username = mPreferences.getString("username", null);
+            String password = mPreferences.getString("password", null);
+
             try {
                 client = createHttpClient();
+
+                if (username != null && !username.equals("") && password != null && !password.equals("")) {
+                    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
+                    AuthScope scope = new AuthScope(method.getURI().getHost(), method.getURI().getPort());
+                    client.getCredentialsProvider().setCredentials(scope, credentials);
+                }
+
                 HttpResponse response = client.execute(method);
 
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
