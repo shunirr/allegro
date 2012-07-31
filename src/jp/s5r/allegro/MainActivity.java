@@ -1,4 +1,4 @@
-package jp.s5r.android.market;
+package jp.s5r.allegro;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -95,8 +95,8 @@ public class MainActivity extends ListActivity {
     private void setupPreferences() {
         String defaultUri = null;
         try {
-            Field f = jp.s5r.android.market.R.string.class.getField("uri");
-            int id = f.getInt(jp.s5r.android.market.R.string.class);
+            Field f = jp.s5r.allegro.R.string.class.getField("uri");
+            int id = f.getInt(jp.s5r.allegro.R.string.class);
             defaultUri = getString(id);
         } catch (NoSuchFieldException e) {
         } catch (IllegalAccessException e) {
