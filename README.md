@@ -18,9 +18,11 @@ Allegro を利用することで、開発中のアプリケーションを手軽
 
 配布したい APK ファイルの URL や更新日時、ファイルサイズなどを記述した JSON ファイルをインターネットに公開します。
 
-JSON の書き方は [sample.json](https://raw.github.com/shunirr/allegro/master/sample.json) を参考にしてください。
+JSON の書き方は [sample.json](https://github.com/shunirr/allegro/blob/master/sample.json) を参考にしてください。
 
-### URI の設定方法
+また、 [server](https://github.com/shunirr/allegro/tree/master/server) 配下の Sinatra アプリを利用することで Allegro 用の JSON を動的に出力することが可能です。
+
+### Allegro での URI の設定方法
 
 * Allegro のメニューキーを押下
  * "Set URI" を選択し、 JSON の URI を設定
