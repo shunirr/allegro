@@ -3,16 +3,34 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:padding="5dp">
     <TextView
             android:id="@+id/tv_status"
             android:layout_width="46dp"
             android:layout_height="wrap_content"
+            android:text="new!"
             android:textSize="18dp"/>
-    <TextView
-            android:id="@+id/tv_appname"
+    <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textSize="28dp" />
+            android:layout_height="wrap_content">
+        <TextView
+                android:id="@+id/tv_appname"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Allegro"
+                android:textSize="28dp"
+                android:padding="1dp" />
+        <TextView
+                android:id="@+id/tv_info"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="52KB, 2012/08/06 00:00:00, jp.s5r.allegro"
+                android:textSize="12dp"
+                android:textColor="@android:color/darker_gray"
+                android:padding="1dp" />
+    </LinearLayout>
 </LinearLayout>

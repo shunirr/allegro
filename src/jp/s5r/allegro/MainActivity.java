@@ -8,6 +8,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.DateParseException;
+import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -30,6 +32,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.text.format.Time;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,7 +44,10 @@ import android.widget.*;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends ListActivity {
@@ -231,10 +238,14 @@ public class MainActivity extends ListActivity {
     class ApkInfo {
         String title;
         URI uri;
+        long fileSize;
+        Date lastModified;
 
-        public ApkInfo(String title, URI uri) {
+        public ApkInfo(String title, URI uri, long fileSize, Date lastModified) {
             this.title = title;
             this.uri = uri;
+            this.fileSize = fileSize;
+            this.lastModified = lastModified;
         }
 
         @Override
@@ -293,7 +304,8 @@ public class MainActivity extends ListActivity {
                 view = mInflater.inflate(R.layout.list_item, null);
                 holder = new ViewHolder();
                 holder.tvAppName = (TextView) view.findViewById(R.id.tv_appname);
-                holder.tvStatus  = (TextView) view.findViewById(R.id.tv_status);
+                holder.tvStatus = (TextView) view.findViewById(R.id.tv_status);
+                holder.tvInfo  = (TextView) view.findViewById(R.id.tv_info);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -302,13 +314,36 @@ public class MainActivity extends ListActivity {
             holder.tvAppName.setText(info.title);
             holder.tvStatus.setText("new!");
 
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            holder.tvInfo.setText(getReadableBytes(info.fileSize) + ", " + sdf.format(info.lastModified));
+
             return view;
         }
 
         private class ViewHolder {
             TextView tvStatus;
             TextView tvAppName;
+            TextView tvInfo;
         }
+    }
+
+    private static String getReadableBytes(long bytes) {
+        final String[] UNIT = {
+                "B", "KB", "MB", "GB"
+        };
+
+        String readableBytes = bytes + UNIT[0];
+        long baseNumber = 1024;
+        for (int i = 1; i < UNIT.length; i++) {
+            double readableNum = bytes / baseNumber;
+            if (readableNum < 1024) {
+                readableBytes = readableNum + UNIT[i];
+                break;
+            }
+            baseNumber *= 1024;
+        }
+
+        return readableBytes;
     }
 
     class DownloadListTask extends AsyncTask<URI, Integer, String> {
@@ -348,12 +383,31 @@ public class MainActivity extends ListActivity {
                 }
                 for (int i = 0; i < json.length(); i++) {
                     JSONObject j = json.getJSONObject(i);
-                    if (j.has("title") && j.has("uri")) {
-                        String title = j.getString("title");
-                        URI uri = URI.create(j.getString("uri"));
-
-                        mAdapter.add(new ApkInfo(title, uri));
+                    String title = "";
+                    if (j.has("title")) {
+                        title = j.getString("title");
                     }
+
+                    URI uri = null;
+                    if (j.has("uri")) {
+                        uri = URI.create(j.getString("uri"));
+                    }
+
+                    Date lastModified = null;
+                    if (j.has("last_modified")) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ZZ");
+                        try {
+                            lastModified = sdf.parse(j.getString("last_modified"));
+                        } catch (ParseException e) {
+                        }
+                    }
+
+                    long fileSize = 0;
+                    if (j.has("size")) {
+                        fileSize = j.getLong("size");
+                    }
+
+                    mAdapter.add(new ApkInfo(title, uri, fileSize, lastModified));
                 }
             } catch (JSONException e) {
                 toast(e.getClass().getSimpleName());
