@@ -25,15 +25,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.text.format.Time;
-import android.util.Log;
+import android.text.method.DateTimeKeyListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -312,7 +310,15 @@ public class MainActivity extends ListActivity {
             }
 
             holder.tvAppName.setText(info.title);
-            holder.tvStatus.setText("new!");
+
+            // 前回取得したパッケージの最終更新日
+            long lastModified = mPreferences.getLong(info.uri.toString(), 0);
+            if (lastModified < info.lastModified.getTime()) {
+                holder.tvStatus.setText("new!");
+                mPreferences.edit().putLong(info.uri.toString(), info.lastModified.getTime()).commit();
+            } else {
+                holder.tvStatus.setText("");
+            }
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             holder.tvInfo.setText(getReadableBytes(info.fileSize) + ", " + sdf.format(info.lastModified));
