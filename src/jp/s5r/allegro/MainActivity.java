@@ -15,11 +15,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,20 +30,24 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
 
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends ListActivity {
     private final static String APK_PATH = Environment.getExternalStorageDirectory() + "/hoge.apk";
 
     private Handler mHandler = new Handler();
-    private ArrayAdapter<ApkInfo> mAdapter;
+    private AppListAdapter mAdapter;
 
     private URI mUri;
     private AlertDialog mJsonUriDialog;
@@ -78,20 +82,6 @@ public class MainActivity extends ListActivity {
                     }
                 })
                 .create();
-    }
-
-    private void setupListViews() {
-        mAdapter = new ArrayAdapter<ApkInfo>(this, R.layout.simple_list_item_1);
-        setListAdapter(mAdapter);
-
-        ListView listView = (ListView) findViewById(R.id.list);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ApkInfo info = mAdapter.getItem(position);
-                new DownloadApkTask(MainActivity.this).execute(info.uri);
-            }
-        });
     }
 
     private void setupPreferences() {
@@ -147,8 +137,19 @@ public class MainActivity extends ListActivity {
         super.onCreate(savedInstanceState);
 
         setupPreferences();
-        setupListViews();
         setupDialog();
+
+        mAdapter = new AppListAdapter(getApplicationContext(), new ArrayList<ApkInfo>());
+        setListAdapter(mAdapter);
+
+        ListView listView = (ListView) findViewById(android.R.id.list);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ApkInfo info = (ApkInfo) mAdapter.getItem(position);
+                new DownloadApkTask(MainActivity.this).execute(info.uri);
+            }
+        });
 
         /*
          * market.json
@@ -249,6 +250,65 @@ public class MainActivity extends ListActivity {
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    class AppListAdapter extends BaseAdapter {
+        private List<ApkInfo> mApkList;
+        private LayoutInflater mInflater;
+
+        public AppListAdapter(Context context, List<ApkInfo> apkList) {
+            super();
+            mApkList = apkList;
+            mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public int getCount() {
+            return mApkList.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return mApkList.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        public void add(ApkInfo info) {
+            mApkList.add(info);
+        }
+
+        public void clear() {
+            mApkList.clear();
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            ApkInfo info = (ApkInfo) getItem(i);
+            ViewHolder holder = null;
+            if (view == null) {
+                view = mInflater.inflate(R.layout.list_item, null);
+                holder = new ViewHolder();
+                holder.tvAppName = (TextView) view.findViewById(R.id.tv_appname);
+                holder.tvStatus  = (TextView) view.findViewById(R.id.tv_status);
+                view.setTag(holder);
+            } else {
+                holder = (ViewHolder) view.getTag();
+            }
+
+            holder.tvAppName.setText(info.title);
+            holder.tvStatus.setText("new!");
+
+            return view;
+        }
+
+        private class ViewHolder {
+            TextView tvStatus;
+            TextView tvAppName;
+        }
     }
 
     class DownloadListTask extends AsyncTask<URI, Integer, String> {
