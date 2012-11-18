@@ -2,6 +2,8 @@ package jp.s5r.allegro.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import jp.s5r.allegro.utils.Log;
 
 import java.io.File;
@@ -9,12 +11,17 @@ import java.io.IOException;
 import java.net.URI;
 
 public class DownloadApkTask extends DownloadTask<File> {
-
   private ProgressDialog mProgressDialog;
+  private DownloadApkListener mListener;
 
   public DownloadApkTask(Context context, ProgressDialog progressDialog) {
     super(context);
     mProgressDialog = progressDialog;
+  }
+
+  public DownloadApkTask setListener(DownloadApkListener listener) {
+    mListener = listener;
+    return this;
   }
 
   @Override
@@ -42,11 +49,14 @@ public class DownloadApkTask extends DownloadTask<File> {
   @Override
   protected void onPostExecute(File file) {
     mProgressDialog.dismiss();
-//    if (!isCancelled() && file != null) {
-//      Intent intent = new Intent(Intent.ACTION_VIEW);
-//      intent.setDataAndType(Uri.fromFile(new File(APK_PATH)), "application/vnd.android.package-archive");
-//      startActivity(intent);
-//    }
+
+    if (mListener != null) {
+      mListener.onSuccess(file);
+    }
+  }
+
+  public interface DownloadApkListener {
+    void onSuccess(File file);
   }
 }
 

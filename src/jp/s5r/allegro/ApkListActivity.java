@@ -1,6 +1,8 @@
 package jp.s5r.allegro;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,6 +28,7 @@ import android.view.ViewGroup;
 import jp.s5r.allegro.utils.ByteSize;
 import jp.s5r.allegro.utils.Log;
 
+import java.io.File;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -110,10 +113,22 @@ public class ApkListActivity extends BaseActivity {
         dialog.show();
 
         ApkInfo info = (ApkInfo) mAdapter.getItem(position);
-        new DownloadApkTask(
-            getApplicationContext(),
-            dialog
-        ).execute(info.getUri());
+        new DownloadApkTask(getApplicationContext(), dialog)
+            .setListener(
+                new DownloadApkTask.DownloadApkListener() {
+                  @Override
+                  public void onSuccess(File file) {
+                    if (file != null) {
+                      Intent intent = new Intent(Intent.ACTION_VIEW);
+                      intent.setDataAndType(
+                          Uri.fromFile(file),
+                          "application/vnd.android.package-archive");
+                      ApkListActivity.this.startActivity(intent);
+                    }
+                  }
+                }
+            )
+            .execute(info.getUri());
       }
     });
 
