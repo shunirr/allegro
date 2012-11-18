@@ -163,7 +163,10 @@ public class ApkListActivity extends BaseActivity {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    mJsonUriDialog.show();
+    Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+    intent.setAction(Intent.ACTION_VIEW);
+    startActivity(intent);
+
     return super.onOptionsItemSelected(item);
   }
 
