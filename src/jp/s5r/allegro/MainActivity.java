@@ -25,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import jp.s5r.allegro.utils.ByteSize;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -203,13 +204,13 @@ public class MainActivity extends ListActivity {
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
       ApkInfo info = (ApkInfo) getItem(i);
-      ViewHolder holder = null;
+      ViewHolder holder;
       if (view == null) {
         view = mInflater.inflate(R.layout.list_item, null);
         holder = new ViewHolder();
         holder.tvAppName = (TextView) view.findViewById(R.id.tv_appname);
-        holder.tvStatus = (TextView) view.findViewById(R.id.tv_status);
-        holder.tvInfo  = (TextView) view.findViewById(R.id.tv_info);
+        holder.tvStatus  = (TextView) view.findViewById(R.id.tv_status);
+        holder.tvInfo    = (TextView) view.findViewById(R.id.tv_info);
         view.setTag(holder);
       } else {
         holder = (ViewHolder) view.getTag();
@@ -227,7 +228,10 @@ public class MainActivity extends ListActivity {
       }
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      holder.tvInfo.setText(getReadableBytes(info.getFileSize()) + ", " + sdf.format(info.getLastModified()));
+      holder.tvInfo.setText(
+          new ByteSize(info.getFileSize()).toString() +
+          ", " +
+          sdf.format(info.getLastModified()));
 
       return view;
     }
@@ -239,22 +243,4 @@ public class MainActivity extends ListActivity {
     }
   }
 
-  private static String getReadableBytes(long bytes) {
-    final String[] UNIT = {
-        "B", "KB", "MB", "GB"
-    };
-
-    String readableBytes = bytes + UNIT[0];
-    long baseNumber = 1024;
-    for (int i = 1; i < UNIT.length; i++) {
-      double readableNum = bytes / baseNumber;
-      if (readableNum < 1024) {
-        readableBytes = readableNum + UNIT[i];
-        break;
-      }
-      baseNumber *= 1024;
-    }
-
-    return readableBytes;
-  }
 }

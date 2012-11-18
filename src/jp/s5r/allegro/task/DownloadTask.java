@@ -52,8 +52,10 @@ public abstract class DownloadTask<T> extends AsyncTask<URI, Integer, T> {
       client = createHttpClient();
       HttpResponse response = client.execute(method);
 
-      Log.d("StatusCode: " + response.getStatusLine().getStatusCode());
-      if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+      int statusCode = response.getStatusLine().getStatusCode();
+
+      Log.d("StatusCode: " + statusCode);
+      if (statusCode == HttpStatus.SC_OK) {
         body = getResponseBody(response);
       }
     } finally {
