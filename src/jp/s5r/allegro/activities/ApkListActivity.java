@@ -144,7 +144,8 @@ public class ApkListActivity extends BaseActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     boolean ret = super.onCreateOptionsMenu(menu);
-    menu.add(0, Menu.FIRST, Menu.NONE, "Set URI");
+    menu.add(0, Menu.FIRST, Menu.NONE, "Settings")
+        .setIcon(android.R.drawable.ic_menu_preferences);
     return ret;
   }
 
