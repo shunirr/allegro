@@ -6,6 +6,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import jp.s5r.allegro.models.ApkInfo;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
@@ -161,7 +162,7 @@ public class MainActivity extends ListActivity {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ApkInfo info = (ApkInfo) mAdapter.getItem(position);
-        new DownloadApkTask(MainActivity.this).execute(info.uri);
+        new DownloadApkTask(MainActivity.this).execute(info.getUri());
       }
     });
 
@@ -242,25 +243,6 @@ public class MainActivity extends ListActivity {
     return responseBody;
   }
 
-  class ApkInfo {
-    String title;
-    URI uri;
-    long fileSize;
-    Date lastModified;
-
-    public ApkInfo(String title, URI uri, long fileSize, Date lastModified) {
-      this.title = title;
-      this.uri = uri;
-      this.fileSize = fileSize;
-      this.lastModified = lastModified;
-    }
-
-    @Override
-    public String toString() {
-      return title;
-    }
-  }
-
   private void toast(final String message) {
     mHandler.post(new Runnable() {
       @Override
@@ -318,19 +300,19 @@ public class MainActivity extends ListActivity {
         holder = (ViewHolder) view.getTag();
       }
 
-      holder.tvAppName.setText(info.title);
+      holder.tvAppName.setText(info.getTitle());
 
       // 前回取得したパッケージの最終更新日
-      long lastModified = mPreferences.getLong(info.uri.toString(), 0);
-      if (lastModified < info.lastModified.getTime()) {
+      long lastModified = mPreferences.getLong(info.getUri().toString(), 0);
+      if (lastModified < info.getLastModified().getTime()) {
         holder.tvStatus.setText("new!");
-        mPreferences.edit().putLong(info.uri.toString(), info.lastModified.getTime()).commit();
+        mPreferences.edit().putLong(info.getUri().toString(), info.getLastModified().getTime()).commit();
       } else {
         holder.tvStatus.setText("");
       }
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      holder.tvInfo.setText(getReadableBytes(info.fileSize) + ", " + sdf.format(info.lastModified));
+      holder.tvInfo.setText(getReadableBytes(info.getFileSize()) + ", " + sdf.format(info.getLastModified()));
 
       return view;
     }
