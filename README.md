@@ -4,8 +4,6 @@ Allegro (アレグロ) とは、 Android の開発版アプリを管理するた
 
 JSON に記述された APK のリストを読み込み、 APK のダウンロード・インストールを行なうことが出来ます。
 
-![screenshot](https://github.com/shunirr/allegro/raw/master/screenshot.png)
-
 Allegro を利用することで、開発中のアプリケーションを手軽に配信することが出来ます。これは、非エンジニアの人に開発版のアプリを配布する際に便利です。
 
 ## 使い方
