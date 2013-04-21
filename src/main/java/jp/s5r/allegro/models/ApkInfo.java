@@ -1,16 +1,24 @@
-package jp.s5r.allegro.model;
+package jp.s5r.allegro.models;
+
+import net.vvakame.util.jsonpullparser.annotation.JsonKey;
+import net.vvakame.util.jsonpullparser.annotation.JsonModel;
 
 import android.net.Uri;
 
 import java.util.Date;
 
+@JsonModel(decamelize = true)
 public class ApkInfo {
+  @JsonKey
   private String title;
 
-  private Uri uri;
+  @JsonKey
+  private String uri;
 
+  @JsonKey
   private Date lastModified;
 
+  @JsonKey
   private int size;
 
   public ApkInfo() {
@@ -35,11 +43,11 @@ public class ApkInfo {
   }
 
   public Uri getUri() {
-    return uri;
+    return Uri.parse(uri);
   }
 
   public void setUri(final Uri uri) {
-    this.uri = uri;
+    this.uri = uri.toString();
   }
 
   public Date getLastModified() {
