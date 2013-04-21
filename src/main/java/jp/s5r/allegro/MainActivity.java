@@ -3,6 +3,7 @@ package jp.s5r.allegro;
 import com.androidquery.AQuery;
 import jp.s5r.allegro.models.ApkInfo;
 import jp.s5r.allegro.models.ApkInfoGenerated;
+import jp.s5r.allegro.utils.PreferenceUtils;
 import net.vvakame.util.jsonpullparser.JsonFormatException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -58,18 +59,16 @@ public class MainActivity extends ListActivity {
   private Handler mHandler = new Handler();
   private AppListAdapter mAdapter;
 
-  private URI mUri;
   private AlertDialog mJsonUriDialog;
   private EditText mUriEditText;
-
-  private SharedPreferences mPreferences;
 
   private AQuery mAq;
 
   private void setupDialog() {
     mUriEditText = new EditText(this);
-    if (mUri != null) {
-      mUriEditText.setText(mUri.toString());
+    Uri uri = PreferenceUtils.getJsonUri(getApplicationContext());
+    if (uri != null) {
+      mUriEditText.setText(uri.toString());
     }
 
     mJsonUriDialog = new AlertDialog.Builder(this)
@@ -77,15 +76,20 @@ public class MainActivity extends ListActivity {
         .setView(mUriEditText)
         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
           public void onClick(DialogInterface dialog, int whichButton) {
+            String uriStr = mUriEditText.getText().toString();
+            URI uri = null;
             try {
-              mUri = URI.create(mUriEditText.getText().toString());
-              mPreferences.edit().putString("uri", mUri.toString()).commit();
-              new DownloadListTask().execute(mUri);
+              uri = URI.create(uriStr);
             } catch (NullPointerException e) {
               Toast.makeText(MainActivity.this, "URI is null", Toast.LENGTH_SHORT).show();
+              return;
             } catch (IllegalArgumentException e) {
               Toast.makeText(MainActivity.this, "Invalid URI", Toast.LENGTH_SHORT).show();
+              return;
             }
+
+            PreferenceUtils.setJsonUri(getApplicationContext(), uriStr);
+            new DownloadListTask().execute(URI.create(uriStr));
           }
         })
         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -95,28 +99,12 @@ public class MainActivity extends ListActivity {
         .create();
   }
 
-  private void setupPreferences() {
-    mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-    try {
-      String uriStr = mPreferences.getString("uri", null);
-      if (uriStr != null) {
-        mUri = URI.create(uriStr);
-        mPreferences.edit().putString("uri", uriStr).commit();
-      }
-    } catch (NullPointerException e) {
-      mUri = null;
-    } catch (IllegalArgumentException e) {
-      mUri = null;
-    }
-  }
-
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     mAq = new AQuery(this);
 
-    setupPreferences();
     setupDialog();
 
     mAdapter = new AppListAdapter(getApplicationContext(), new ArrayList<ApkInfo>());
@@ -124,8 +112,9 @@ public class MainActivity extends ListActivity {
 
     mAq.id(android.R.id.list).itemClicked(this, "listItemClicked");
 
-    if (mUri != null) {
-      new DownloadListTask().execute(mUri);
+    Uri uri = PreferenceUtils.getJsonUri(getApplicationContext());
+    if (uri != null) {
+      new DownloadListTask().execute(URI.create(uri.toString()));
     } else {
       mJsonUriDialog.show();
     }
@@ -260,14 +249,14 @@ public class MainActivity extends ListActivity {
 
       holder.tvAppName.setText(info.getTitle());
 
-      // 前回取得したパッケージの最終更新日
-      long lastModified = mPreferences.getLong(info.getUri(), 0);
-      if (lastModified < info.getLastModified().getTime()) {
-        holder.tvStatus.setText("new!");
-        mPreferences.edit().putLong(info.getUri(), info.getLastModified().getTime()).commit();
-      } else {
-        holder.tvStatus.setText("");
-      }
+//      // 前回取得したパッケージの最終更新日
+//      long lastModified = mPreferences.getLong(info.getUri(), 0);
+//      if (lastModified < info.getLastModified().getTime()) {
+//        holder.tvStatus.setText("new!");
+//        mPreferences.edit().putLong(info.getUri(), info.getLastModified().getTime()).commit();
+//      } else {
+//        holder.tvStatus.setText("");
+//      }
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       holder.tvInfo.setText(getReadableBytes(info.getSize()) + ", " + sdf.format(info.getLastModified()));
