@@ -1,9 +1,8 @@
 package jp.s5r.allegro;
 
 import android.app.ProgressDialog;
-import android.preference.PreferenceManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -14,25 +13,33 @@ import jp.s5r.allegro.task.DownloadApkTask;
 import jp.s5r.allegro.task.DownloadListTask;
 
 import android.app.AlertDialog;
+import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import jp.s5r.allegro.utils.ByteSize;
-import jp.s5r.allegro.utils.Log;
 
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ApkListActivity extends BaseActivity {
-  private ApkListAdapter mAdapter;
+  private final static String APK_PATH =
+      Environment.getExternalStorageDirectory() + "/hoge.apk";
+
+  private Handler mHandler = new Handler();
+  private AppListAdapter mAdapter;
 
   private URI mUri;
   private AlertDialog mJsonUriDialog;
@@ -53,24 +60,12 @@ public class ApkListActivity extends BaseActivity {
           public void onClick(DialogInterface dialog, int whichButton) {
             try {
               mUri = URI.create(mUriEditText.getText().toString());
-              mPreferences.edit()
-                          .putString("uri", mUri.toString())
-                          .commit();
-              new DownloadListTask(getApplicationContext())
-                  .setListener(mDownloadListListener)
-                  .execute(mUri);
+              mPreferences.edit().putString("uri", mUri.toString()).commit();
+              new DownloadListTask(getApplicationContext()).execute(mUri);
             } catch (NullPointerException e) {
-              Toast.makeText(
-                  ApkListActivity.this,
-                  "URI is null",
-                  Toast.LENGTH_SHORT
-              ).show();
+              Toast.makeText(ApkListActivity.this, "URI is null", Toast.LENGTH_SHORT).show();
             } catch (IllegalArgumentException e) {
-              Toast.makeText(
-                  ApkListActivity.this,
-                  "Invalid URI",
-                  Toast.LENGTH_SHORT
-              ).show();
+              Toast.makeText(ApkListActivity.this, "Invalid URI", Toast.LENGTH_SHORT).show();
             }
           }
         })
@@ -81,25 +76,67 @@ public class ApkListActivity extends BaseActivity {
         .create();
   }
 
+  private void setupPreferences() {
+    String defaultUri = null;
+    String defaultUsername = null;
+    String defaultPassword = null;
+    try {
+      Field fUri = jp.s5r.allegro.R.string.class.getField("uri");
+      int idUri = fUri.getInt(jp.s5r.allegro.R.string.class);
+      defaultUri = getString(idUri);
+
+      Field fUsername = jp.s5r.allegro.R.string.class.getField("username");
+      int idUsername = fUsername.getInt(jp.s5r.allegro.R.string.class);
+      defaultUsername = getString(idUsername);
+
+      Field fPassword = jp.s5r.allegro.R.string.class.getField("password");
+      int idPassword = fPassword.getInt(jp.s5r.allegro.R.string.class);
+      defaultPassword = getString(idPassword);
+    } catch (NoSuchFieldException e) {
+    } catch (IllegalAccessException e) {
+    }
+
+    mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+    try {
+      String uriStr = mPreferences.getString("uri", null);
+      if (uriStr == null) {
+        uriStr = defaultUri;
+      }
+      mUri = URI.create(uriStr);
+
+      String usernameStr = mPreferences.getString("username", null);
+      if (usernameStr == null) {
+        usernameStr = defaultUsername;
+      }
+
+      String passwordStr = mPreferences.getString("password", null);
+      if (passwordStr == null) {
+        passwordStr = defaultPassword;
+      }
+
+      mPreferences.edit().putString("uri", mUri.toString()).commit();
+      mPreferences.edit().putString("username", usernameStr).commit();
+      mPreferences.edit().putString("password", passwordStr).commit();
+    } catch (NullPointerException e) {
+      mUri = null;
+    } catch (IllegalArgumentException e) {
+      mUri = null;
+    }
+  }
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     setContentView(R.layout.apk_list_layout);
 
-    mPreferences =
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-    String uriStr = mPreferences.getString("uri", null);
-    if (uriStr != null) {
-      mUri = URI.create(uriStr);
-    }
-
+    setupPreferences();
     setupDialog();
 
-    mAdapter = new ApkListAdapter(getApplicationContext(),
-                                  new ArrayList<ApkInfo>());
+    mAdapter = new AppListAdapter(getApplicationContext(), new ArrayList<ApkInfo>());
+//    setListAdapter(mAdapter);
 
     ListView listView = (ListView) findViewById(R.id.app_list);
-    listView.setAdapter(mAdapter);
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -110,17 +147,12 @@ public class ApkListActivity extends BaseActivity {
         dialog.show();
 
         ApkInfo info = (ApkInfo) mAdapter.getItem(position);
-        new DownloadApkTask(
-            getApplicationContext(),
-            dialog
-        ).execute(info.getUri());
+        new DownloadApkTask(getApplicationContext(), dialog).execute(info.getUri());
       }
     });
 
     if (mUri != null) {
-      new DownloadListTask(getApplicationContext())
-          .setListener(mDownloadListListener)
-          .execute(mUri);
+      new DownloadListTask(getApplicationContext()).execute(mUri);
     } else {
       mJsonUriDialog.show();
     }
@@ -133,30 +165,18 @@ public class ApkListActivity extends BaseActivity {
     return ret;
   }
 
-  private DownloadListTask.DownloadListListener mDownloadListListener =
-      new DownloadListTask.DownloadListListener() {
-        @Override
-        public void onSuccess(List<ApkInfo> apkInfoList) {
-          Log.i(ApkListActivity.class, "onSuccess(List<ApkInfo>)");
-          Log.d("apk count: " + apkInfoList.size());
-          mAdapter.clear();
-          mAdapter.add(apkInfoList);
-          mAdapter.notifyDataSetChanged();
-        }
-      };
-
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     mJsonUriDialog.show();
     return super.onOptionsItemSelected(item);
   }
 
-  class ApkListAdapter extends ArrayAdapter {
+  class AppListAdapter extends BaseAdapter {
     private List<ApkInfo> mApkList;
     private LayoutInflater mInflater;
 
-    public ApkListAdapter(Context context, List<ApkInfo> apkList) {
-      super(context, 0);
+    public AppListAdapter(Context context, List<ApkInfo> apkList) {
+      super();
       mApkList = apkList;
       mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -178,12 +198,6 @@ public class ApkListActivity extends BaseActivity {
 
     public void add(ApkInfo info) {
       mApkList.add(info);
-    }
-
-    public void add(List<ApkInfo> infoList) {
-      for (ApkInfo info : infoList) {
-        add(info);
-      }
     }
 
     public void clear() {
@@ -211,10 +225,7 @@ public class ApkListActivity extends BaseActivity {
       long lastModified = mPreferences.getLong(info.getUri().toString(), 0);
       if (lastModified < info.getLastModified().getTime()) {
         holder.tvStatus.setText("new!");
-        mPreferences.edit().putLong(
-            info.getUri().toString(),
-            info.getLastModified().getTime()
-        ).commit();
+        mPreferences.edit().putLong(info.getUri().toString(), info.getLastModified().getTime()).commit();
       } else {
         holder.tvStatus.setText("");
       }
@@ -234,4 +245,5 @@ public class ApkListActivity extends BaseActivity {
       TextView tvInfo;
     }
   }
+
 }
