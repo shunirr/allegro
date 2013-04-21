@@ -43,7 +43,7 @@ mvn install
 ### Installing
 
 ```
-adb install target/allegro-0.1.apk
+mvn install android:deploy
 ```
 
 # License
