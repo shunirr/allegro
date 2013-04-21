@@ -1,5 +1,6 @@
 package jp.s5r.allegro;
 
+import com.androidquery.AQuery;
 import jp.s5r.allegro.models.ApkInfo;
 import jp.s5r.allegro.models.ApkInfoGenerated;
 import net.vvakame.util.jsonpullparser.JsonFormatException;
@@ -37,7 +38,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -66,6 +66,8 @@ public class MainActivity extends ListActivity {
   private EditText mUriEditText;
 
   private SharedPreferences mPreferences;
+
+  private AQuery mAq;
 
   private void setupDialog() {
     mUriEditText = new EditText(this);
@@ -148,26 +150,30 @@ public class MainActivity extends ListActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    mAq = new AQuery(this);
+
     setupPreferences();
     setupDialog();
 
     mAdapter = new AppListAdapter(getApplicationContext(), new ArrayList<ApkInfo>());
     setListAdapter(mAdapter);
 
-    ListView listView = (ListView) findViewById(android.R.id.list);
-    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-      @Override
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        ApkInfo info = (ApkInfo) mAdapter.getItem(position);
-        new DownloadApkTask(MainActivity.this).execute(URI.create(info.getUri()));
-      }
-    });
+    mAq.id(android.R.id.list).itemClicked(this, "listItemClicked");
 
     if (mUri != null) {
       new DownloadListTask().execute(mUri);
     } else {
       mJsonUriDialog.show();
     }
+  }
+
+  @SuppressWarnings("unused")
+  public void listItemClicked(final AdapterView<?> parent,
+                              final View view,
+                              final int position,
+                              final long id) {
+    ApkInfo info = (ApkInfo) mAdapter.getItem(position);
+    new DownloadApkTask(MainActivity.this).execute(URI.create(info.getUri()));
   }
 
   @Override

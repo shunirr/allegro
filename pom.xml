@@ -37,6 +37,13 @@
       <version>1.6.1</version>
       <scope>compile</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.googlecode.android-query</groupId>
+      <artifactId>android-query</artifactId>
+      <version>0.24.3</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>
