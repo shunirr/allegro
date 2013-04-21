@@ -75,7 +75,7 @@ public class MainActivity extends ListActivity {
         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
           public void onClick(DialogInterface dialog, int whichButton) {
             String uriStr = mUriEditText.getText().toString();
-            URI uri = null;
+            URI uri;
             try {
               uri = URI.create(uriStr);
             } catch (NullPointerException e) {
@@ -87,7 +87,7 @@ public class MainActivity extends ListActivity {
             }
 
             PreferenceUtils.setJsonUri(getApplicationContext(), uriStr);
-            new DownloadListTask().execute(URI.create(uriStr));
+            new DownloadListTask().execute(uri);
           }
         })
         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
