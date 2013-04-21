@@ -1,0 +1,5 @@
+[
+  {"title": "MyApp Ver1", "uri": "http://example.com/my-app-v1.apk", "last_modified":"2012-01-01 00:00:00 +0900", "size":1000000},
+  {"title": "MyApp Ver2", "uri": "http://example.com/my-app-v2.apk", "last_modified":"2012-01-02 00:00:00 +0900", "size":1000000},
+  {"title": "MyApp Ver3", "uri": "http://example.com/my-app-v3.apk", "last_modified":"2012-01-03 00:00:00 +0900", "size":1000000}
+]
