@@ -165,15 +165,6 @@ public class MainActivity extends ListActivity {
       }
     });
 
-        /*
-         * market.json
-         * [
-         *   {"title": "MyApp Ver1", "uri": "http://example.com/my-app-v1.apk"},
-         *   {"title": "MyApp Ver2", "uri": "http://example.com/my-app-v2.apk"},
-         *   {"title": "MyApp Ver3", "uri": "http://example.com/my-app-v3.apk"}
-         * ]
-         */
-
     if (mUri != null) {
       new DownloadListTask().execute(mUri);
     } else {
