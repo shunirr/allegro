@@ -73,15 +73,16 @@ public abstract class DownloadTask<T> extends AsyncTask<URI, Integer, T> {
   protected boolean downloadBinary(URI targetUri, File outFile,
                                    String username, String password)
       throws IOException {
-    File file = new File("/sdcard/hoge.apk");
+    File file = null;
     HttpGet method = new HttpGet(targetUri);
     DefaultHttpClient client = null;
 
     try {
       client = createHttpClient();
 
-      if (username != null && username.equals("") &&
-          password != null && password.equals("")) {
+      if ("".equals(username) && "".equals(password)) {
+        // nop
+      } else {
         UsernamePasswordCredentials credentials =
             new UsernamePasswordCredentials(username, password);
         AuthScope scope = new AuthScope(method.getURI().getHost(),
