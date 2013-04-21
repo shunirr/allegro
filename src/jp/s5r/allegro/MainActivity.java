@@ -7,7 +7,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import jp.s5r.allegro.activities.BaseActivity;
 import jp.s5r.allegro.models.ApkInfo;
 import jp.s5r.allegro.task.DownloadApkTask;
 import jp.s5r.allegro.task.DownloadListTask;
@@ -34,7 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ApkListActivity extends BaseActivity {
+public class MainActivity extends ListActivity {
   private final static String APK_PATH =
       Environment.getExternalStorageDirectory() + "/hoge.apk";
 
@@ -63,9 +62,9 @@ public class ApkListActivity extends BaseActivity {
               mPreferences.edit().putString("uri", mUri.toString()).commit();
               new DownloadListTask(getApplicationContext()).execute(mUri);
             } catch (NullPointerException e) {
-              Toast.makeText(ApkListActivity.this, "URI is null", Toast.LENGTH_SHORT).show();
+              Toast.makeText(MainActivity.this, "URI is null", Toast.LENGTH_SHORT).show();
             } catch (IllegalArgumentException e) {
-              Toast.makeText(ApkListActivity.this, "Invalid URI", Toast.LENGTH_SHORT).show();
+              Toast.makeText(MainActivity.this, "Invalid URI", Toast.LENGTH_SHORT).show();
             }
           }
         })
@@ -128,19 +127,17 @@ public class ApkListActivity extends BaseActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    setContentView(R.layout.apk_list_layout);
-
     setupPreferences();
     setupDialog();
 
     mAdapter = new AppListAdapter(getApplicationContext(), new ArrayList<ApkInfo>());
-//    setListAdapter(mAdapter);
+    setListAdapter(mAdapter);
 
-    ListView listView = (ListView) findViewById(R.id.app_list);
+    ListView listView = (ListView) findViewById(android.R.id.list);
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        ProgressDialog dialog = new ProgressDialog(ApkListActivity.this);
+        ProgressDialog dialog = new ProgressDialog(MainActivity.this);
         dialog.setTitle("Downloading ...");
         dialog.setIndeterminate(true);
         dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
