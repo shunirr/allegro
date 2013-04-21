@@ -2,6 +2,7 @@
 .DS_Store
 /gen
 /bin
+/target
 /.settings
 /.project
 /.classpath
