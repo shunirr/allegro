@@ -1,6 +1,5 @@
 package jp.s5r.allegro;
 
-import android.app.ProgressDialog;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -59,7 +58,7 @@ public class MainActivity extends ListActivity {
             try {
               mUri = URI.create(mUriEditText.getText().toString());
               mPreferences.edit().putString("uri", mUri.toString()).commit();
-              new DownloadListTask(getApplicationContext()).execute(mUri);
+              new DownloadListTask().execute(mUri);
             } catch (NullPointerException e) {
               Toast.makeText(MainActivity.this, "URI is null", Toast.LENGTH_SHORT).show();
             } catch (IllegalArgumentException e) {
@@ -136,19 +135,22 @@ public class MainActivity extends ListActivity {
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        ProgressDialog dialog = new ProgressDialog(MainActivity.this);
-        dialog.setTitle("Downloading ...");
-        dialog.setIndeterminate(true);
-        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        dialog.show();
-
         ApkInfo info = (ApkInfo) mAdapter.getItem(position);
-        new DownloadApkTask(getApplicationContext(), dialog).execute(info.getUri());
+        new DownloadApkTask(MainActivity.this).execute(info.getUri());
       }
     });
 
+    /*
+    * market.json
+    * [
+    *   {"title": "MyApp Ver1", "uri": "http://example.com/my-app-v1.apk"},
+    *   {"title": "MyApp Ver2", "uri": "http://example.com/my-app-v2.apk"},
+    *   {"title": "MyApp Ver3", "uri": "http://example.com/my-app-v3.apk"}
+    * ]
+    */
+
     if (mUri != null) {
-      new DownloadListTask(getApplicationContext()).execute(mUri);
+      new DownloadListTask().execute(mUri);
     } else {
       mJsonUriDialog.show();
     }
@@ -157,7 +159,7 @@ public class MainActivity extends ListActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     boolean ret = super.onCreateOptionsMenu(menu);
-    menu.add(0, Menu.FIRST, Menu.NONE, "Set URI");
+    menu.add(0 , Menu.FIRST , Menu.NONE , "Set URI");
     return ret;
   }
 

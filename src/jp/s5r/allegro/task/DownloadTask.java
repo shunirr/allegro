@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 
-public abstract class DownloadTask<T> extends AsyncTask<URI, Integer, T> {
+public class DownloadTask<T> extends AsyncTask<URI, Integer, T> {
   protected static final int BUFFER_SIZE = 1024;
 
   protected Context mContext;
@@ -41,8 +41,6 @@ public abstract class DownloadTask<T> extends AsyncTask<URI, Integer, T> {
   protected T doInBackground(URI... uris) {
     return null;
   }
-
-  protected abstract void progress(int value);
 
   protected String downloadText(URI targetUri) throws IOException {
     String body = null;
@@ -102,14 +100,12 @@ public abstract class DownloadTask<T> extends AsyncTask<URI, Integer, T> {
         BufferedOutputStream bos =
             new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
 
-        long contentLength = response.getEntity().getContentLength();
-
         try {
           byte buffer[] = new byte[BUFFER_SIZE];
           int size;
           while ((size = bis.read(buffer)) > 0) {
             bos.write(buffer, 0, size);
-            progress((int)(size / contentLength * 100));
+            publishProgress(size);
 
             if (isCancelled()) {
               break;

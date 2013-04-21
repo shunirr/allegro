@@ -1,10 +1,21 @@
 package jp.s5r.allegro.task;
 
 import android.content.Context;
-import jp.s5r.allegro.utils.Log;
+import jp.s5r.allegro.models.ApkInfo;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class DownloadListTask extends DownloadTask<String> {
   public DownloadListTask(Context context) {
@@ -13,18 +24,27 @@ public class DownloadListTask extends DownloadTask<String> {
 
   @Override
   protected String doInBackground(URI... uris) {
+    String body = null;
+    HttpGet method = new HttpGet(uris[0]);
+    HttpClient client = null;
     try {
-      return downloadText(uris[0]);
+      client = createHttpClient();
+      HttpResponse response = client.execute(method);
+
+      if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+        body = getResponseBody(response);
+      } else {
+        toast("StatusCode: " + response.getStatusLine().getStatusCode());
+      }
+    } catch (ClientProtocolException e) {
+      toast(e.getClass().getSimpleName());
     } catch (IOException e) {
-      toast("Exception:" + e.getMessage());
-      Log.e(e);
+      toast(e.getClass().getSimpleName());
+    } finally {
+      destroyHttpClient(client);
     }
 
-    return null;
-  }
-
-  @Override
-  protected void progress(int value) {
+    return body;
   }
 
   @Override
