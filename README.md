@@ -27,6 +27,25 @@ JSON の書き方は [sample.json](https://github.com/shunirr/allegro/blob/maste
 * Allegro のメニューキーを押下
  * "Set URI" を選択し、 JSON の URI を設定
 
+## How to build
+
+### Require
+
+* Android SDK
+* Maven
+
+### Building
+
+```
+mvn install
+```
+
+### Installing
+
+```
+adb install target/allegro-0.1.apk
+```
+
 # License
 Released under the Apache License, v2.0.
 
