@@ -12,12 +12,30 @@
   <packaging>apk</packaging>
   <name>Allegro</name>
 
+  <properties>
+    <generated.src>target/annotations</generated.src>
+    <genclass.postfix>Generated</genclass.postfix>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.android</groupId>
       <artifactId>android</artifactId>
       <version>2.2.1</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>net.vvakame</groupId>
+      <artifactId>jsonpullparser-apt</artifactId>
+      <version>1.6.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.vvakame</groupId>
+      <artifactId>jsonpullparser-core</artifactId>
+      <version>1.6.1</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
@@ -47,6 +65,45 @@
           <source>1.6</source>
           <target>1.6</target>
           <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.bsc.maven</groupId>
+        <artifactId>maven-processor-plugin</artifactId>
+        <version>2.0.5</version>
+        <executions>
+          <execution>
+            <id>process</id>
+            <goals>
+              <goal>process</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <outputDirectory>${generated.src}</outputDirectory>
+              <processors>
+                <processor>net.vvakame.util.jsonpullparser.factory.JsonAnnotationProcessor</processor>
+              </processors>
+              <options>
+                <JsonPullParserClassPostfix>${genclass.postfix}</JsonPullParserClassPostfix>
+              </options>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${generated.src}</directory>
+              <includes>
+                <include>**/*.*</include>
+              </includes>
+            </fileset>
+          </filesets>
         </configuration>
       </plugin>
     </plugins>
