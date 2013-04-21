@@ -1,5 +1,8 @@
 package jp.s5r.allegro;
 
+import jp.s5r.allegro.models.ApkInfo;
+import jp.s5r.allegro.models.ApkInfoGenerated;
+import net.vvakame.util.jsonpullparser.JsonFormatException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
@@ -11,9 +14,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -51,10 +51,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends ListActivity {
@@ -161,7 +159,7 @@ public class MainActivity extends ListActivity {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ApkInfo info = (ApkInfo) mAdapter.getItem(position);
-        new DownloadApkTask(MainActivity.this).execute(info.uri);
+        new DownloadApkTask(MainActivity.this).execute(URI.create(info.getUri()));
       }
     });
 
@@ -233,25 +231,6 @@ public class MainActivity extends ListActivity {
     return responseBody;
   }
 
-  class ApkInfo {
-    String title;
-    URI uri;
-    long fileSize;
-    Date lastModified;
-
-    public ApkInfo(String title, URI uri, long fileSize, Date lastModified) {
-      this.title = title;
-      this.uri = uri;
-      this.fileSize = fileSize;
-      this.lastModified = lastModified;
-    }
-
-    @Override
-    public String toString() {
-      return title;
-    }
-  }
-
   private void toast(final String message) {
     mHandler.post(new Runnable() {
       @Override
@@ -309,19 +288,19 @@ public class MainActivity extends ListActivity {
         holder = (ViewHolder) view.getTag();
       }
 
-      holder.tvAppName.setText(info.title);
+      holder.tvAppName.setText(info.getTitle());
 
       // 前回取得したパッケージの最終更新日
-      long lastModified = mPreferences.getLong(info.uri.toString(), 0);
-      if (lastModified < info.lastModified.getTime()) {
+      long lastModified = mPreferences.getLong(info.getUri(), 0);
+      if (lastModified < info.getLastModified().getTime()) {
         holder.tvStatus.setText("new!");
-        mPreferences.edit().putLong(info.uri.toString(), info.lastModified.getTime()).commit();
+        mPreferences.edit().putLong(info.getUri(), info.getLastModified().getTime()).commit();
       } else {
         holder.tvStatus.setText("");
       }
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      holder.tvInfo.setText(getReadableBytes(info.fileSize) + ", " + sdf.format(info.lastModified));
+      holder.tvInfo.setText(getReadableBytes(info.getSize()) + ", " + sdf.format(info.getLastModified()));
 
       return view;
     }
@@ -380,43 +359,35 @@ public class MainActivity extends ListActivity {
 
     @Override
     protected void onPostExecute(String body) {
+      if (body == null || body.equals("")) {
+        Toast.makeText(getApplicationContext(),
+            "Json is null.",
+            Toast.LENGTH_SHORT)
+            .show();
+        return;
+      }
+
       mAdapter.clear();
 
+      List<ApkInfo> apkInfoList = null;
       try {
-        JSONArray json = new JSONArray();
-        if (body != null) {
-          json = new JSONArray(body);
-        }
-        for (int i = 0; i < json.length(); i++) {
-          JSONObject j = json.getJSONObject(i);
-          String title = "";
-          if (j.has("title")) {
-            title = j.getString("title");
-          }
+        apkInfoList = ApkInfoGenerated.getList(body);
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (JsonFormatException e) {
+        e.printStackTrace();
+      }
 
-          URI uri = null;
-          if (j.has("uri")) {
-            uri = URI.create(j.getString("uri"));
-          }
+      if (apkInfoList == null) {
+        Toast.makeText(getApplicationContext(),
+                       "Json parse error.",
+                       Toast.LENGTH_SHORT)
+             .show();
+        return;
+      }
 
-          Date lastModified = null;
-          if (j.has("last_modified")) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ZZ");
-            try {
-              lastModified = sdf.parse(j.getString("last_modified"));
-            } catch (ParseException e) {
-            }
-          }
-
-          long fileSize = 0;
-          if (j.has("size")) {
-            fileSize = j.getLong("size");
-          }
-
-          mAdapter.add(new ApkInfo(title, uri, fileSize, lastModified));
-        }
-      } catch (JSONException e) {
-        toast(e.getClass().getSimpleName());
+      for (ApkInfo info : apkInfoList) {
+        mAdapter.add(info);
       }
 
       mAdapter.notifyDataSetChanged();

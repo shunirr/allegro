@@ -3,8 +3,7 @@ package jp.s5r.allegro.models;
 import net.vvakame.util.jsonpullparser.annotation.JsonKey;
 import net.vvakame.util.jsonpullparser.annotation.JsonModel;
 
-import android.net.Uri;
-
+import java.net.URI;
 import java.util.Date;
 
 @JsonModel(decamelize = true)
@@ -15,26 +14,37 @@ public class ApkInfo {
   @JsonKey
   private String uri;
 
-  @JsonKey
+//  @JsonKey
   private Date lastModified;
 
   @JsonKey
-  private int size;
+  private long size;
 
   public ApkInfo() {
   }
 
   public ApkInfo(final String title,
-                 final Uri uri,
+                 final String uri,
                  final Date lastModified,
-                 final int size) {
+                 final long size) {
     setTitle(title);
     setUri(uri);
     setLastModified(lastModified);
     setSize(size);
   }
 
+  @Deprecated
+  public ApkInfo(String title, URI uri, long fileSize, Date lastModified) {
+    setTitle(title);
+    setUri(uri.toString());
+    setSize(fileSize);
+    setLastModified(lastModified);
+  }
+
   public String getTitle() {
+    if (title == null) {
+      return "";
+    }
     return title;
   }
 
@@ -42,15 +52,18 @@ public class ApkInfo {
     this.title = title;
   }
 
-  public Uri getUri() {
-    return Uri.parse(uri);
+  public String getUri() {
+    return uri;
   }
 
-  public void setUri(final Uri uri) {
-    this.uri = uri.toString();
+  public void setUri(final String uri) {
+    this.uri = uri;
   }
 
   public Date getLastModified() {
+    if (lastModified == null) {
+      return new Date();
+    }
     return lastModified;
   }
 
@@ -58,11 +71,11 @@ public class ApkInfo {
     this.lastModified = lastModified;
   }
 
-  public int getSize() {
+  public long getSize() {
     return size;
   }
 
-  public void setSize(final int size) {
+  public void setSize(final long size) {
     this.size = size;
   }
 }
