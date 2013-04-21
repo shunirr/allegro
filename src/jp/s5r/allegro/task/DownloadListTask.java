@@ -13,18 +13,11 @@ public class DownloadListTask extends DownloadTask<String> {
 
   @Override
   protected String doInBackground(URI... uris) {
-    URI uri = null;
-    if (uris != null && uris.length > 0) {
-      uri = uris[0];
-    }
-
-    if (uri != null) {
-      try {
-        return downloadText(uri);
-      } catch (IOException e) {
-        toast("Exception:" + e.getMessage());
-        Log.e(e);
-      }
+    try {
+      return downloadText(uris[0]);
+    } catch (IOException e) {
+      toast("Exception:" + e.getMessage());
+      Log.e(e);
     }
 
     return null;
