@@ -12,8 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import jp.s5r.allegro.activities.BaseActivity;
 import jp.s5r.allegro.models.ApkInfo;
-import jp.s5r.allegro.tasks.DownloadApkTask;
-import jp.s5r.allegro.tasks.DownloadListTask;
+import jp.s5r.allegro.task.DownloadApkTask;
+import jp.s5r.allegro.task.DownloadListTask;
 
 import android.app.AlertDialog;
 import android.content.Context;

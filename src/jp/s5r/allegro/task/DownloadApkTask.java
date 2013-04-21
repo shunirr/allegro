@@ -1,7 +1,9 @@
-package jp.s5r.allegro.tasks;
+package jp.s5r.allegro.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import jp.s5r.allegro.utils.Log;
 
 import java.io.File;

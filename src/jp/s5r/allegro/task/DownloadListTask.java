@@ -1,6 +1,7 @@
-package jp.s5r.allegro.tasks;
+package jp.s5r.allegro.task;
 
 import android.content.Context;
+import android.widget.ArrayAdapter;
 import jp.s5r.allegro.models.ApkInfo;
 import jp.s5r.allegro.utils.Log;
 import org.json.JSONArray;

@@ -1,4 +1,4 @@
-package jp.s5r.allegro.tasks;
+package jp.s5r.allegro.task;
 
 import android.content.Context;
 import android.os.AsyncTask;
