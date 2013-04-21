@@ -1,4 +1,4 @@
-package jp.s5r.allegro.activities;
+package jp.s5r.allegro;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -10,7 +10,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import jp.s5r.allegro.R;
+import jp.s5r.allegro.activities.BaseActivity;
 import jp.s5r.allegro.models.ApkInfo;
 import jp.s5r.allegro.tasks.DownloadApkTask;
 import jp.s5r.allegro.tasks.DownloadListTask;
