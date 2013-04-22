@@ -1,4 +1,4 @@
-# What's Allegro?
+# Allegro  [![Build Status](https://travis-ci.org/shunirr/allegro.png?branch=master)](https://travis-ci.org/shunirr/allegro)
 
 Allegro (アレグロ) とは、 Android の開発版アプリを管理するために作られたフロントエンドアプリケーションです。
 
