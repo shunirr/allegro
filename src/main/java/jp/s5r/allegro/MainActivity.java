@@ -52,7 +52,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends ListActivity {
-  private final static String APK_PATH = Environment.getExternalStorageDirectory() + "/hoge.apk";
+  private static final String APK_PATH =
+          Environment.getExternalStorageDirectory() + "/hoge.apk";
+
+  private static final String[] UNIT = {
+         "B", "KB", "MB", "GB",
+  };
 
   private Handler mHandler = new Handler();
   private AppListAdapter mAdapter;
@@ -73,16 +78,23 @@ public class MainActivity extends ListActivity {
         .setTitle("Set JSON-List URI")
         .setView(mUriEditText)
         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-          public void onClick(DialogInterface dialog, int whichButton) {
+          public void onClick(final DialogInterface dialog,
+                              final int whichButton) {
             String uriStr = mUriEditText.getText().toString();
             URI uri;
             try {
               uri = URI.create(uriStr);
             } catch (NullPointerException e) {
-              Toast.makeText(MainActivity.this, "URI is null", Toast.LENGTH_SHORT).show();
+              Toast.makeText(MainActivity.this,
+                             "URI is null",
+                             Toast.LENGTH_SHORT)
+                   .show();
               return;
             } catch (IllegalArgumentException e) {
-              Toast.makeText(MainActivity.this, "Invalid URI", Toast.LENGTH_SHORT).show();
+              Toast.makeText(MainActivity.this,
+                             "Invalid URI",
+                             Toast.LENGTH_SHORT)
+                   .show();
               return;
             }
 
@@ -91,21 +103,23 @@ public class MainActivity extends ListActivity {
           }
         })
         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-          public void onClick(DialogInterface dialog, int whichButton) {
+          public void onClick(final DialogInterface dialog,
+                              final int whichButton) {
           }
         })
         .create();
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     mAq = new AQuery(this);
 
     setupDialog();
 
-    mAdapter = new AppListAdapter(getApplicationContext(), new ArrayList<ApkInfo>());
+    mAdapter = new AppListAdapter(getApplicationContext(),
+                                  new ArrayList<ApkInfo>());
     setListAdapter(mAdapter);
 
     mAq.id(android.R.id.list).itemClicked(this, "listItemClicked");
@@ -128,14 +142,14 @@ public class MainActivity extends ListActivity {
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
+  public boolean onCreateOptionsMenu(final Menu menu) {
     boolean ret = super.onCreateOptionsMenu(menu);
     menu.add(0 , Menu.FIRST , Menu.NONE , "Set URI");
     return ret;
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  public boolean onOptionsItemSelected(final MenuItem item) {
     mJsonUriDialog.show();
     return super.onOptionsItemSelected(item);
   }
@@ -149,13 +163,14 @@ public class MainActivity extends ListActivity {
     return new DefaultHttpClient(params);
   }
 
-  private void destroyHttpClient(HttpClient httpClient) {
+  private void destroyHttpClient(final HttpClient httpClient) {
     if (httpClient != null) {
       httpClient.getConnectionManager().shutdown();
     }
   }
 
-  private String getResponseBody(HttpResponse response) throws IOException {
+  private String getResponseBody(final HttpResponse response)
+          throws IOException {
     InputStream       is  = null;
     InputStreamReader isr = null;
     BufferedReader    br  = null;
@@ -201,10 +216,12 @@ public class MainActivity extends ListActivity {
     private List<ApkInfo> mApkList;
     private LayoutInflater mInflater;
 
-    public AppListAdapter(Context context, List<ApkInfo> apkList) {
+    public AppListAdapter(final Context context, final List<ApkInfo> apkList) {
       super();
       mApkList = apkList;
-      mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      mInflater = (LayoutInflater) context.getSystemService(
+              Context.LAYOUT_INFLATER_SERVICE
+      );
     }
 
     @Override
@@ -213,16 +230,16 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
-    public Object getItem(int i) {
-      return mApkList.get(i);
+    public Object getItem(final int index) {
+      return mApkList.get(index);
     }
 
     @Override
-    public long getItemId(int i) {
-      return i;
+    public long getItemId(final int id) {
+      return id;
     }
 
-    public void add(ApkInfo info) {
+    public void add(final ApkInfo info) {
       mApkList.add(info);
     }
 
@@ -231,7 +248,10 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
+    public View getView(final int i,
+                        final View convertView,
+                        final ViewGroup viewGroup) {
+      View view = convertView;
       ApkInfo info = (ApkInfo) getItem(i);
       ViewHolder holder = null;
       if (view == null) {
@@ -269,11 +289,7 @@ public class MainActivity extends ListActivity {
     }
   }
 
-  private static String getReadableBytes(long bytes) {
-    final String[] UNIT = {
-        "B", "KB", "MB", "GB"
-    };
-
+  private static String getReadableBytes(final long bytes) {
     String readableBytes = bytes + UNIT[0];
     long baseNumber = 1024;
     for (int i = 1; i < UNIT.length; i++) {
@@ -290,7 +306,7 @@ public class MainActivity extends ListActivity {
 
   class DownloadListTask extends AsyncTask<URI, Integer, String> {
     @Override
-    protected String doInBackground(URI... uris) {
+    protected String doInBackground(final URI... uris) {
       String body = null;
       HttpGet method = new HttpGet(uris[0]);
       HttpClient client = null;
@@ -315,7 +331,7 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
-    protected void onPostExecute(String body) {
+    protected void onPostExecute(final String body) {
       if (body == null || body.equals("")) {
         Toast.makeText(getApplicationContext(),
             "Json is null.",
@@ -357,7 +373,7 @@ public class MainActivity extends ListActivity {
     private ProgressDialog mProgressDialog;
     private Activity mActivity;
 
-    public DownloadApkTask(Activity a) {
+    public DownloadApkTask(final Activity a) {
       mActivity = a;
     }
 
@@ -371,7 +387,7 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
-    protected File doInBackground(URI... uris) {
+    protected File doInBackground(final URI... uris) {
       File file = null;
       HttpGet method = new HttpGet(uris[0]);
       DefaultHttpClient client = null;
@@ -390,10 +406,14 @@ public class MainActivity extends ListActivity {
           }
           file.createNewFile();
 
-          BufferedInputStream bis = new BufferedInputStream(response.getEntity().getContent(), BUFFER_SIZE);
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
+          BufferedInputStream bis = new BufferedInputStream(
+                  response.getEntity().getContent(), BUFFER_SIZE
+          );
+          BufferedOutputStream bos = new BufferedOutputStream(
+                  new FileOutputStream(file), BUFFER_SIZE
+          );
           try {
-            byte buffer[] = new byte[BUFFER_SIZE];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int size;
             while ((size = bis.read(buffer)) > 0) {
               bos.write(buffer, 0, size);
@@ -426,16 +446,17 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
-    protected void onProgressUpdate(Integer... progress) {
+    protected void onProgressUpdate(final Integer... progress) {
       mProgressDialog.incrementProgressBy(progress[0]);
     }
 
     @Override
-    protected void onPostExecute(File file) {
+    protected void onPostExecute(final File file) {
       mProgressDialog.dismiss();
       if (!isCancelled() && file != null) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.fromFile(new File(APK_PATH)), "application/vnd.android.package-archive");
+        intent.setDataAndType(Uri.fromFile(new File(APK_PATH)),
+                              "application/vnd.android.package-archive");
         startActivity(intent);
       }
     }

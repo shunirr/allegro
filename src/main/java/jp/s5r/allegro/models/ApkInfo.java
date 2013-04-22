@@ -23,22 +23,25 @@ public class ApkInfo {
   public ApkInfo() {
   }
 
-  public ApkInfo(final String title,
-                 final String uri,
-                 final Date lastModified,
-                 final long size) {
-    setTitle(title);
-    setUri(uri);
-    setLastModified(lastModified);
-    setSize(size);
+  public ApkInfo(final String aTitle,
+                 final String aUri,
+                 final Date aLastModified,
+                 final long aSize) {
+    setTitle(aTitle);
+    setUri(aUri);
+    setLastModified(aLastModified);
+    setSize(aSize);
   }
 
   @Deprecated
-  public ApkInfo(String title, URI uri, long fileSize, Date lastModified) {
-    setTitle(title);
-    setUri(uri.toString());
-    setSize(fileSize);
-    setLastModified(lastModified);
+  public ApkInfo(final String aTitle,
+                 final URI aUri,
+                 final long aSize,
+                 final Date aLastModified) {
+    setTitle(aTitle);
+    setUri(aUri.toString());
+    setSize(aSize);
+    setLastModified(aLastModified);
   }
 
   public String getTitle() {
@@ -48,16 +51,16 @@ public class ApkInfo {
     return title;
   }
 
-  public void setTitle(final String title) {
-    this.title = title;
+  public void setTitle(final String aTitle) {
+    title = aTitle;
   }
 
   public String getUri() {
     return uri;
   }
 
-  public void setUri(final String uri) {
-    this.uri = uri;
+  public void setUri(final String aUri) {
+    uri = aUri;
   }
 
   public Date getLastModified() {
@@ -67,15 +70,15 @@ public class ApkInfo {
     return lastModified;
   }
 
-  public void setLastModified(final Date lastModified) {
-    this.lastModified = lastModified;
+  public void setLastModified(final Date aLastModified) {
+    lastModified = aLastModified;
   }
 
   public long getSize() {
     return size;
   }
 
-  public void setSize(final long size) {
-    this.size = size;
+  public void setSize(final long aSize) {
+    size = aSize;
   }
 }
